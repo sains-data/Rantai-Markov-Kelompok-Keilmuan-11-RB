@@ -106,14 +106,14 @@ $$
 Clone repository:
 
 ```bash
-git clone https://github.com/USERNAME/REPO-NAME.git
-cd REPO-NAME
+git clone https://github.com/sains-data/Rantai-Markov-Kelompok-Keilmuan-11-RB/tree/main
+cd Rantai-Markov-Kelompok-Keilmuan-11-RB
 ```
 
 Jalankan script di R:
 
 ```r
-source("R/markov-analysis.R")
+source("R/CODE TUBES PEMSTOK.Rmd")
 ```
 
 ---
