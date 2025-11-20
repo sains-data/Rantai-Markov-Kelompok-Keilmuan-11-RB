@@ -1,0 +1,199 @@
+---
+title: "Code Pemstok"
+author: "Rayan Koemi Karuby"
+date: "2025-11-17"
+output: html_document
+---
+```{r}
+# =====================================================
+# 1. BACA DATA
+# =====================================================
+
+df <- read.csv("C:/Users/rynko/Downloads/DATA PEMSTOK.csv")
+
+col_sem4 <- "Kelompok.Keilmuan.yang.paling.anda.minati.pada.saat.semester.4"
+col_sem7 <- "Kelompok.keilmuan.yang.akhirnya.dipilih.Untuk.Tugas.Akhir"
+
+# mapping state
+df$S4 <- ifelse(df[[col_sem4]] == "Pemodelan dan Simulasi Data", "X1", "X2")
+df$S7 <- ifelse(df[[col_sem7]] == "Pemodelan dan Simulasi Data", "X1", "X2")
+
+states <- c("X1", "X2")
+
+
+# =====================================================
+# 2. VEKTOR PROBABILITAS AWAL (v0)
+# =====================================================
+
+freq_s4 <- table(df$S4)
+v0 <- prop.table(freq_s4)
+
+cat("\n=== Vektor Probabilitas Awal (v0) ===\n")
+print(v0)
+
+
+# =====================================================
+# 3. TABEL TRANSISI PERPINDAHAN
+# =====================================================
+
+transition <- matrix(0, nrow = 2, ncol = 2,
+                     dimnames = list(states, states))
+
+for(i in 1:nrow(df)){
+  transition[df$S4[i], df$S7[i]] <- transition[df$S4[i], df$S7[i]] + 1
+}
+
+cat("\n=== Tabel Jumlah Perpindahan (Semester 4 → Semester 7) ===\n")
+print(transition)
+
+
+# =====================================================
+# 4. MATRIKS PELUANG TRANSISI
+# =====================================================
+
+P <- prop.table(transition, 1)
+
+cat("\n=== Matriks Peluang Transisi (P) ===\n")
+print(P)
+
+
+# =====================================================
+# 5. HITUNG v1 = v0 × P
+# =====================================================
+
+v1 <- as.numeric(v0) %*% P
+names(v1) <- states
+
+cat("\n=== Vektor Peluang Transisi v1 (Prediksi Semester 7) ===\n")
+print(v1)
+
+
+# =====================================================
+# 6. STEADY STATE (P^100)
+# =====================================================
+
+# INSTALL jika belum ada: install.packages("expm")
+library(expm)
+
+steady <- (P %^% 100)[1,]
+names(steady) <- states
+
+cat("\n=== Steady State (Perkiraan Jangka Panjang) ===\n")
+print(steady)
+```
+
+```{r}
+# =====================================================
+# 1. BACA DATA
+# =====================================================
+df <- read.csv("C:/Users/rynko/Downloads/DATA PEMSTOK.csv")
+
+col_sem4 <- "Kelompok.Keilmuan.yang.paling.anda.minati.pada.saat.semester.4"
+col_sem7 <- "Kelompok.keilmuan.yang.akhirnya.dipilih.Untuk.Tugas.Akhir"
+
+# =====================================================
+# 2. PEMETAAN STATE
+# =====================================================
+mapping <- list(
+  "Pemodelan dan Simulasi Data" = "X1",
+  "Computer Vision" = "X2"
+)
+
+df$S4 <- unlist(mapping[df[[col_sem4]]])
+df$S7 <- unlist(mapping[df[[col_sem7]]])
+
+states <- c("X1", "X2")
+
+# =====================================================
+# 3. FREKUENSI SEMESTER 4 & 7
+# =====================================================
+library(dplyr)
+
+freq_S4 <- table(df$S4)
+prob_S4 <- prop.table(freq_S4)
+
+freq_S7 <- table(df$S7)
+prob_S7 <- prop.table(freq_S7)
+
+cat("\n=== Frekuensi Semester 4 ===\n")
+print(freq_S4)
+print(prob_S4)
+
+cat("\n=== Frekuensi Semester 7 ===\n")
+print(freq_S7)
+print(prob_S7)
+
+# =====================================================
+# 4. TABEL TRANSISI JUMLAH PERPINDAHAN
+# =====================================================
+transition <- matrix(0, nrow = 2, ncol = 2,
+                     dimnames = list(states, states))
+
+for(i in 1:nrow(df)){
+  transition[df$S4[i], df$S7[i]] <- transition[df$S4[i], df$S7[i]] + 1
+}
+
+cat("\n=== Tabel Perpindahan ===\n")
+print(transition)
+
+# =====================================================
+# 5. MATRIKS TRANSISI
+# =====================================================
+P <- prop.table(transition, 1)
+
+cat("\n=== Matriks Transisi P ===\n")
+print(P)
+
+# =====================================================
+# 6. DIAGRAM TRANSISI (DiagrammeR)
+# =====================================================
+library(DiagrammeR)
+
+grViz(paste0("
+digraph {
+  rankdir = LR;
+
+  node [shape = circle, fontsize = 20, width = 1.2]
+  X1; X2;
+
+  # Self-loops
+  X1 -> X1 [label = '", round(P['X1','X1'],4) , "'];
+  X2 -> X2 [label = '", round(P['X2','X2'],4) , "'];
+
+  # Cross transitions
+  X1 -> X2 [label = '", round(P['X1','X2'],4) , "'];
+  X2 -> X1 [label = '", round(P['X2','X1'],4) , "'];
+}
+"))
+
+# =====================================================
+# 7. PROBABILITAS LANGKAH KE-n (P^n)
+# =====================================================
+install.packages("expm")
+library(expm)
+n <- 5
+P_n <- P %^% n  # requires matrixcalc
+
+cat("\n=== Matriks P^n (n=5) ===\n")
+print(P_n)
+
+# =====================================================
+# 8. DISTRIBUSI STASIONER
+# =====================================================
+library(expm)
+
+P_steady <- P %^% 100
+steady <- P_steady[1,]
+
+cat("\n=== Distribusi Stasioner ===\n")
+print(steady)
+
+# =====================================================
+# 9. KLASIFIKASI STATE (Recurrent / Transient)
+# =====================================================
+classification <- ifelse(steady > 0, "Recurrent", "Transient")
+names(classification) <- states
+
+cat("\n=== Klasifikasi State ===\n")
+print(classification)
+```
