@@ -90,7 +90,7 @@ $$
 
 ---
 
-## 🛠 Teknologi yang Digunakan
+## 🛠 Library yang Digunakan
 
 ### **R**
 
