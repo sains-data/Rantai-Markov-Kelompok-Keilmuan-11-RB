@@ -26,25 +26,6 @@ Berikut adalah diagram alir proses analisis rantai Markov yang digunakan dalam p
 
 ![Diagram Alir Penelitian](gambar/Diagram%20Alir%20Penelitian.png)
 
----
-
-## 📁 Struktur Repository
-
-```
-📦 markov-keilmuan/
-│
-├── data/
-│   └── DATA PEMSTOK.csv
-│
-├── R/
-│   └── CODE TUBES PEMSTOK.Rmd
-│
-├── gambar/
-│   └── Diagram Transisi.png
-|   └── Diagram Alir Penelitian.png
-│
-└── README.md
-```
 
 ---
 
